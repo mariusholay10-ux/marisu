@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マリス — MARISU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sakura:#f2a7c3; --sakura-l:#fce4ef; --sakura-ll:#fff0f6;
+  --violet:#6b3fa0; --violet-l:#9b6fcf; --violet-ll:#e8d8f8; --violet-d:#3a1f6a;
+  --white:#ffffff; --soft:#fdf6fb; --ink:#2a1a3e; --muted:#9b7db0;
+  --gold:#e8b86d; --dark:#0e0a18;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--dark);color:white;overflow-x:hidden;cursor:none;}
+
+/* CURSOR */
+#cur{position:fixed;width:14px;height:14px;background:var(--sakura);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s,background .3s;}
+#cur-r{position:fixed;width:38px;height:38px;border:1.5px solid rgba(242,167,195,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .15s ease,width .2s,height .2s;}
+.ch #cur{width:22px;height:22px;background:var(--violet-l);}
+.ch #cur-r{width:55px;height:55px;}
+.trail-p{position:fixed;pointer-events:none;z-index:9997;border-radius:50% 0 50% 0;animation:trailF .7s ease-out forwards;}
+@keyframes trailF{0%{opacity:.7;transform:scale(1);}100%{opacity:0;transform:scale(0) rotate(180deg);}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:rgba(14,10,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(242,167,195,.12);}
+.nav-brand{display:flex;flex-direction:column;align-items:flex-start;cursor:none;text-decoration:none;}
+.nav-brand-jp{font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.nav-brand-en{font-family:'Space Grotesk',sans-serif;font-size:.5rem;letter-spacing:.4em;color:rgba(242,167,195,.5);text-transform:uppercase;margin-top:.1rem;}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center;}
+.nav-links a{text-decoration:none;color:rgba(255,255,255,.5);font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;cursor:none;transition:color .3s;font-family:'Space Grotesk',sans-serif;}
+.nav-links a:hover{color:var(--sakura);}
+.nav-cart{position:relative;cursor:none;}
+.cart-count{position:absolute;top:-6px;right:-8px;width:16px;height:16px;background:var(--sakura);border-radius:50%;font-size:.6rem;display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:700;}
+.nav-search{background:rgba(242,167,195,.08);border:1px solid rgba(242,167,195,.15);border-radius:999px;padding:.4rem 1rem;font-size:.75rem;color:white;outline:none;cursor:none;font-family:'Zen Kaku Gothic New',sans-serif;width:160px;transition:all .3s;}
+.nav-search:focus{border-color:var(--sakura);background:rgba(242,167,195,.12);width:200px;}
+.nav-search::placeholder{color:rgba(255,255,255,.3);}
+
+/* PAGES */
+.page{display:none;min-height:100vh;padding-top:70px;}
+.page.active{display:block;}
+
+/* HERO */
+.hero{min-height:calc(100vh - 70px);position:relative;overflow:hidden;display:flex;align-items:center;background:linear-gradient(135deg,var(--dark) 0%,#1a0a2e 60%,#0e0a18 100%);}
+.hero-blob1{position:absolute;width:600px;height:600px;top:-200px;right:-100px;background:radial-gradient(circle,rgba(107,63,160,.4) 0%,transparent 70%);border-radius:50%;animation:pulse 4s ease-in-out infinite;}
+.hero-blob2{position:absolute;width:400px;height:400px;bottom:-150px;left:-80px;background:radial-gradient(circle,rgba(242,167,195,.2) 0%,transparent 70%);border-radius:50%;animation:pulse 5s ease-in-out infinite .5s;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
+/* Grid lines deco */
+.hero-grid-deco{position:absolute;inset:0;background-image:linear-gradient(rgba(242,167,195,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(242,167,195,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+
+.hero-inner{max-width:1200px;margin:0 auto;padding:0 3rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;position:relative;z-index:2;}
+
+.hero-text{}
+.hero-drop{font-family:'Space Grotesk',sans-serif;font-size:.7rem;letter-spacing:.4em;text-transform:uppercase;color:var(--sakura);margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem;}
+.hero-drop::before{content:'';display:block;width:20px;height:1px;background:var(--sakura);}
+
+.hero-title-jp{font-family:'Shippori Mincho',serif;font-size:clamp(4rem,8vw,7rem);font-weight:800;line-height:.9;background:linear-gradient(135deg,white 0%,var(--sakura) 50%,var(--violet-l) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.3rem;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) both;}
+.hero-title-en{font-family:'Space Grotesk',sans-serif;font-size:.85rem;letter-spacing:.6em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:2rem;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .15s both;}
+.hero-sub{font-size:1rem;line-height:1.9;color:rgba(255,255,255,.5);max-width:420px;margin-bottom:2.5rem;font-weight:300;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .3s both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px);}to{opacity:1;transform:translateY(0);}}
+
+.hero-cta{display:flex;gap:1rem;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .45s both;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.9rem 2.2rem;font-family:'Space Grotesk',sans-serif;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;cursor:none;border:none;border-radius:999px;transition:all .3s;font-weight:700;}
+.btn-primary{background:linear-gradient(135deg,var(--sakura),var(--violet));color:white;box-shadow:0 8px 30px rgba(107,63,160,.4);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(107,63,160,.55);}
+.btn-ghost{background:transparent;color:white;border:1px solid rgba(255,255,255,.2);}
+.btn-ghost:hover{border-color:var(--sakura);color:var(--sakura);transform:translateY(-3px);}
+
+/* Hero visual — floating product mockup */
+.hero-visual{position:relative;display:flex;align-items:center;justify-content:center;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .2s both;}
+.hero-product-card{width:320px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(242,167,195,.15);border-radius:28px;overflow:hidden;backdrop-filter:blur(10px);box-shadow:0 30px 80px rgba(0,0,0,.5);animation:float 4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-15px) rotate(1deg);}}
+.hero-product-img{height:340px;background:linear-gradient(135deg,rgba(107,63,160,.3),rgba(242,167,195,.2));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.hero-product-img-kanji{font-family:'Shippori Mincho',serif;font-size:8rem;color:rgba(255,255,255,.08);position:absolute;line-height:1;}
+.hero-product-placeholder{display:flex;flex-direction:column;align-items:center;gap:.5rem;z-index:1;}
+.hero-product-placeholder span{font-size:.65rem;letter-spacing:.2em;color:rgba(255,255,255,.3);text-transform:uppercase;}
+
+/* Sakura decorative SVG */
+.hero-sakura-deco{position:absolute;top:-20px;right:-30px;width:180px;opacity:.4;pointer-events:none;animation:sway 5s ease-in-out infinite;}
+@keyframes sway{0%,100%{transform:rotate(0deg);}50%{transform:rotate(4deg);}}
+
+.hero-product-info{padding:1.5rem;}
+.hero-product-name{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:600;color:white;margin-bottom:.3rem;}
+.hero-product-price{font-family:'Space Grotesk',sans-serif;font-size:.9rem;color:var(--sakura);font-weight:700;}
+.hero-product-tag{display:inline-block;background:rgba(242,167,195,.15);color:var(--sakura);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;padding:.25rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+
+/* Floating badges */
+.badge-float{position:absolute;background:rgba(14,10,24,.9);border:1px solid rgba(242,167,195,.2);border-radius:14px;padding:.8rem 1.2rem;backdrop-filter:blur(10px);animation:float 3s ease-in-out infinite;}
+.badge-float:nth-child(1){top:10%;left:-20px;animation-delay:.5s;}
+.badge-float:nth-child(2){bottom:15%;right:-10px;animation-delay:1s;}
+.badge-float-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+.badge-float-val{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--sakura);}
+
+/* SCROLL MARQUEE */
+.marquee-band{background:linear-gradient(135deg,var(--violet),var(--violet-d));padding:.8rem 0;overflow:hidden;border-top:1px solid rgba(242,167,195,.1);border-bottom:1px solid rgba(242,167,195,.1);}
+.marquee-inner{display:flex;gap:3rem;animation:marquee 20s linear infinite;white-space:nowrap;}
+.marquee-inner:hover{animation-play-state:paused;}
+.marquee-item{font-family:'Space Grotesk',sans-serif;font-size:.75rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:1rem;}
+.marquee-item::after{content:'✦';color:var(--sakura);font-size:.6rem;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* SECTIONS */
+.section{padding:6rem 3rem;position:relative;overflow:hidden;}
+.section-inner{max-width:1200px;margin:0 auto;}
+
+/* Section header */
+.sec-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3.5rem;}
+.sec-header-left{}
+.sec-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--sakura);margin-bottom:.5rem;font-weight:700;}
+.sec-title{font-family:'Shippori Mincho',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;color:white;line-height:1.1;}
+.sec-link{font-family:'Space Grotesk',sans-serif;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none;cursor:none;transition:color .3s;display:flex;align-items:center;gap:.5rem;}
+.sec-link:hover{color:var(--sakura);}
+
+/* PRODUCTS GRID */
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;}
+.prod-card{background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(242,167,195,.08);border-radius:20px;overflow:hidden;cursor:none;transition:all .4s cubic-bezier(.16,1,.3,1);group:true;}
+.prod-card:hover{transform:translateY(-8px);border-color:rgba(242,167,195,.25);box-shadow:0 20px 50px rgba(107,63,160,.3);}
+.prod-img{height:220px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.prod-img-kanji{font-family:'Shippori Mincho',serif;font-size:5rem;color:rgba(255,255,255,.06);position:absolute;}
+.prod-img-placeholder{display:flex;flex-direction:column;align-items:center;gap:.4rem;z-index:1;}
+.prod-img-icon{font-size:2rem;opacity:.4;}
+.prod-img-text{font-size:.6rem;letter-spacing:.2em;color:rgba(255,255,255,.2);text-transform:uppercase;}
+.prod-img-badge{position:absolute;top:.8rem;left:.8rem;background:linear-gradient(135deg,var(--sakura),var(--violet));color:white;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .7rem;border-radius:999px;font-family:'Space Grotesk',sans-serif;font-weight:700;}
+.prod-img-badge.sold{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+.prod-wishlist{position:absolute;top:.8rem;right:.8rem;width:32px;height:32px;background:rgba(14,10,24,.8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;opacity:0;transition:opacity .3s;cursor:none;}
+.prod-card:hover .prod-wishlist{opacity:1;}
+.prod-body{padding:1.2rem;}
+.prod-cat{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem;font-family:'Space Grotesk',sans-serif;}
+.prod-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:600;color:white;margin-bottom:.5rem;}
+.prod-footer{display:flex;align-items:center;justify-content:space-between;}
+.prod-price{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;color:var(--sakura);}
+.prod-price-old{font-size:.75rem;color:rgba(255,255,255,.25);text-decoration:line-through;margin-left:.4rem;}
+.prod-add{width:32px;height:32px;background:linear-gradient(135deg,var(--sakura),var(--violet));border-radius:50%;border:none;color:white;font-size:1.1rem;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .3s;opacity:0;}
+.prod-card:hover .prod-add{opacity:1;transform:scale(1.1);}
+
+/* Color gradients per card */
+.pg1{background:linear-gradient(135deg,rgba(107,63,160,.25),rgba(242,167,195,.1));}
+.pg2{background:linear-gradient(135deg,rgba(242,167,195,.15),rgba(107,63,160,.2));}
+.pg3{background:linear-gradient(135deg,rgba(58,31,106,.4),rgba(155,111,207,.15));}
+.pg4{background:linear-gradient(135deg,rgba(232,184,109,.15),rgba(242,167,195,.2));}
+.pg5{background:linear-gradient(135deg,rgba(107,63,160,.3),rgba(58,31,106,.4));}
+.pg6{background:linear-gradient(135deg,rgba(242,167,195,.2),rgba(232,184,109,.1));}
+.pg7{background:linear-gradient(135deg,rgba(58,31,106,.35),rgba(242,167,195,.15));}
+.pg8{background:linear-gradient(135deg,rgba(155,111,207,.2),rgba(242,167,195,.1));}
+
+/* FEATURED BANNER */
+.featured-banner{background:linear-gradient(135deg,#1a0a2e,var(--violet-d));border:1px solid rgba(242,167,195,.1);border-radius:28px;padding:4rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;position:relative;overflow:hidden;}
+.fb-blob{position:absolute;width:300px;height:300px;top:-100px;right:-80px;background:radial-gradient(circle,rgba(242,167,195,.2) 0%,transparent 70%);border-radius:50%;}
+.fb-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;color:var(--sakura);margin-bottom:1rem;font-weight:700;}
+.fb-title{font-family:'Shippori Mincho',serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:800;color:white;line-height:1.1;margin-bottom:1.2rem;}
+.fb-title em{font-style:normal;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.fb-desc{font-size:.9rem;line-height:1.9;color:rgba(255,255,255,.5);margin-bottom:2rem;}
+.fb-visual{position:relative;display:flex;align-items:center;justify-content:center;}
+.fb-product-mock{width:100%;max-width:280px;aspect-ratio:3/4;background:linear-gradient(135deg,rgba(107,63,160,.3),rgba(242,167,195,.15));border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:6rem;color:rgba(255,255,255,.08);border:1px solid rgba(242,167,195,.1);animation:float 4s ease-in-out infinite;}
+.fb-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(242,167,195,.1);border:1px solid rgba(242,167,195,.2);color:var(--sakura);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.5rem;font-family:'Space Grotesk',sans-serif;font-weight:700;}
+
+/* CATEGORIES */
+.cats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.cat-card{border-radius:20px;overflow:hidden;cursor:none;position:relative;height:200px;display:flex;align-items:flex-end;padding:1.5rem;transition:all .4s cubic-bezier(.16,1,.3,1);border:1px solid rgba(255,255,255,.05);}
+.cat-card:hover{transform:scale(1.02);}
+.cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(14,10,24,.85) 0%,transparent 60%);z-index:1;}
+.cat-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:7rem;color:rgba(255,255,255,.06);}
+.cat-info{position:relative;z-index:2;}
+.cat-name{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:white;margin-bottom:.2rem;}
+.cat-count{font-size:.7rem;color:rgba(255,255,255,.4);letter-spacing:.1em;font-family:'Space Grotesk',sans-serif;}
+.cc1{background:linear-gradient(135deg,#2d1060,#6b3fa0);}
+.cc2{background:linear-gradient(135deg,#3a0a2a,#c0392b);}
+.cc3{background:linear-gradient(135deg,#0a1a3a,#1e4080);}
+.cc4{background:linear-gradient(135deg,#1a2a0a,#3a6020);}
+.cc5{background:linear-gradient(135deg,#2a1a0a,#80601e);}
+.cc6{background:linear-gradient(135deg,#1a0a2e,#6b3fa0);}
+
+/* PROMO BAND */
+.promo-band{background:linear-gradient(135deg,var(--sakura),var(--violet));padding:4rem 3rem;text-align:center;position:relative;overflow:hidden;}
+.promo-blob{position:absolute;width:400px;height:400px;top:-200px;left:-100px;background:rgba(255,255,255,.1);border-radius:50%;}
+.promo-title{font-family:'Shippori Mincho',serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;color:white;margin-bottom:1rem;position:relative;z-index:2;}
+.promo-sub{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;position:relative;z-index:2;}
+.promo-code{display:inline-block;background:rgba(255,255,255,.2);border:1px dashed rgba(255,255,255,.5);border-radius:12px;padding:.6rem 1.5rem;font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.3em;color:white;margin-bottom:2rem;position:relative;z-index:2;cursor:none;transition:all .3s;}
+.promo-code:hover{background:rgba(255,255,255,.3);}
+.btn-white{background:white;color:var(--violet);position:relative;z-index:2;}
+.btn-white:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.2);}
+
+/* NEWSLETTER */
+.newsletter-section{background:rgba(255,255,255,.02);border-top:1px solid rgba(242,167,195,.08);padding:5rem 3rem;}
+.newsletter-inner{max-width:600px;margin:0 auto;text-align:center;}
+.nl-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;color:white;margin-bottom:1rem;}
+.nl-sub{font-size:.9rem;color:rgba(255,255,255,.4);margin-bottom:2rem;line-height:1.8;}
+.nl-form{display:flex;gap:.8rem;}
+.nl-input{flex:1;padding:.9rem 1.4rem;background:rgba(255,255,255,.05);border:1px solid rgba(242,167,195,.15);border-radius:999px;font-family:'Zen Kaku Gothic New',sans-serif;font-size:.88rem;color:white;outline:none;cursor:none;transition:border-color .3s;}
+.nl-input:focus{border-color:var(--sakura);}
+.nl-input::placeholder{color:rgba(255,255,255,.25);}
+
+/* FOOTER */
+footer{background:#080510;border-top:1px solid rgba(242,167,195,.08);padding:4rem 3rem 2rem;}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4rem;margin-bottom:3rem;}
+.footer-brand-jp{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.2rem;}
+.footer-brand-en{font-family:'Space Grotesk',sans-serif;font-size:.5rem;letter-spacing:.5em;color:rgba(242,167,195,.3);text-transform:uppercase;margin-bottom:1rem;}
+.footer-brand-desc{font-size:.82rem;line-height:1.8;color:rgba(255,255,255,.3);max-width:250px;}
+.footer-col-title{font-family:'Space Grotesk',sans-serif;font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1.2rem;font-weight:700;}
+.footer-links{display:flex;flex-direction:column;gap:.7rem;}
+.footer-links a{text-decoration:none;color:rgba(255,255,255,.3);font-size:.82rem;cursor:none;transition:color .3s;}
+.footer-links a:hover{color:var(--sakura);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;}
+.footer-copy{font-size:.72rem;color:rgba(255,255,255,.2);letter-spacing:.08em;}
+.footer-socials{display:flex;gap:1rem;}
+.social-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:none;transition:all .3s;text-decoration:none;}
+.social-btn:hover{background:rgba(242,167,195,.15);border-color:var(--sakura);}
+
+/* CART SIDEBAR */
+.cart-sidebar{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:#0e0a18;border-left:1px solid rgba(242,167,195,.12);z-index:400;transition:right .4s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;padding:0;}
+.cart-sidebar.open{right:0;}
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:399;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px);}
+.cart-overlay.show{opacity:1;pointer-events:all;}
+.cart-header{padding:1.5rem 2rem;border-bottom:1px solid rgba(242,167,195,.08);display:flex;justify-content:space-between;align-items:center;}
+.cart-title{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:white;}
+.cart-close{background:none;border:none;color:rgba(255,255,255,.4);font-size:1.3rem;cursor:none;transition:color .3s;}
+.cart-close:hover{color:var(--sakura);}
+.cart-body{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
+.cart-empty{text-align:center;padding:3rem 0;}
+.cart-empty-kanji{font-family:'Shippori Mincho',serif;font-size:4rem;color:rgba(255,255,255,.05);margin-bottom:1rem;}
+.cart-empty-text{font-size:.85rem;color:rgba(255,255,255,.3);}
+.cart-footer{padding:1.5rem 2rem;border-top:1px solid rgba(242,167,195,.08);}
+.cart-total-row{display:flex;justify-content:space-between;margin-bottom:1.2rem;}
+.cart-total-label{font-size:.82rem;color:rgba(255,255,255,.4);}
+.cart-total-val{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;color:var(--sakura);}
+
+/* Reveal animations */
+.reveal{opacity:0;transform:translateY(25px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.v{opacity:1;transform:translateY(0);}
+.reveal-l{opacity:0;transform:translateX(-25px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal-l.v{opacity:1;transform:translateX(0);}
+.reveal-r{opacity:0;transform:translateX(25px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal-r.v{opacity:1;transform:translateX(0);}
+
+/* Mobile */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem;}
+  .nav-search{display:none;}
+  .hero-inner{grid-template-columns:1fr;gap:2rem;}
+  .hero-visual{display:none;}
+  .section{padding:4rem 1.5rem;}
+  .products-grid{grid-template-columns:repeat(2,1fr);}
+  .cats-grid{grid-template-columns:1fr 1fr;}
+  .featured-banner{grid-template-columns:1fr;padding:2.5rem;}
+  .footer-top{grid-template-columns:1fr 1fr;gap:2rem;}
+  .nl-form{flex-direction:column;}
+  .cart-sidebar{width:100%;}
+  body{cursor:auto;}
+  #cur,#cur-r{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <span class="cart-title">Mon panier</span>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body">
+    <div class="cart-empty">
+      <div class="cart-empty-kanji">空</div>
+      <div class="cart-empty-text">Votre panier est vide<br>Explorez notre collection !</div>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-val">0,00 €</span>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;">Commander →</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span class="nav-brand-jp">マリス</span>
+    <span class="nav-brand-en">MARISU</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#collection">Collection</a></li>
+    <li><a href="#categories">Catégories</a></li>
+    <li><a href="#nouveautes">Nouveautés</a></li>
+    <li><a href="#about-brand">À propos</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <input type="text" class="nav-search" placeholder="Rechercher...">
+    <div class="nav-cart" onclick="toggleCart()">
+      🛍️
+      <span class="cart-count" id="cartCount">0</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HOME PAGE ══ -->
+<div class="page active" id="mainPage">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-blob1"></div>
+    <div class="hero-blob2"></div>
+    <div class="hero-grid-deco"></div>
+    <!-- Sakura branch deco -->
+    <svg style="position:absolute;top:0;right:0;width:280px;opacity:.35;pointer-events:none;animation:sway 6s ease-in-out infinite;transform-origin:top right;" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg">
+      <path d="M280,0 Q220,40 150,80 Q100,110 50,160 Q20,185 0,200" fill="none" stroke="#7a5230" stroke-width="4" stroke-linecap="round"/>
+      <path d="M180,55 Q155,20 138,48" fill="none" stroke="#7a5230" stroke-width="2.5"/>
+      <path d="M120,90 Q95,55 80,78" fill="none" stroke="#7a5230" stroke-width="2.5"/>
+      <g transform="translate(137,46)"><circle r="7" fill="rgba(242,167,195,.7)"/><circle cx="8" r="6" fill="rgba(252,228,239,.6)"/><circle cx="-6" cy="-6" r="6" fill="rgba(242,167,195,.6)"/><circle cx="2" cy="-1" r="2.5" fill="rgba(232,184,109,.7)"/></g>
+      <g transform="translate(79,76)"><circle r="7" fill="rgba(252,228,239,.7)"/><circle cx="8" r="6" fill="rgba(242,167,195,.6)"/><circle cx="-6" cy="-5" r="6" fill="rgba(252,228,239,.6)"/><circle cx="2" cy="-1" r="2.5" fill="rgba(232,184,109,.7)"/></g>
+    </svg>
+
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-drop">Nouvelle collection 2025</div>
+        <div class="hero-title-jp">マリス</div>
+        <div class="hero-title-en">MARISU — TOKYO STREET</div>
+        <p class="hero-sub">Streetwear japonais pour ceux qui osent. Des pièces uniques à l'intersection de la culture urbaine et de l'esthétique nippone.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" onclick="document.getElementById('collection').scrollIntoView({behavior:'smooth'})">Explorer la collection</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('about-brand').scrollIntoView({behavior:'smooth'})">Notre histoire</button>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="badge-float" style="top:5%;left:-10px;">
+          <div class="badge-float-label">Pièces exclusives</div>
+          <div class="badge-float-val">LIMITED</div>
+        </div>
+        <div class="hero-product-card">
+          <div class="hero-product-img pg1">
+            <div class="hero-product-img-kanji">服</div>
+            <div class="hero-product-placeholder">
+              <span>👕</span>
+              <span>Photo produit</span>
+            </div>
+          </div>
+          <div class="hero-product-info">
+            <div class="hero-product-tag">⭐ Best-seller</div>
+            <div class="hero-product-name">Hoodie マリス Classic</div>
+            <div class="hero-product-price">89,00 €</div>
+          </div>
+        </div>
+        <div class="badge-float" style="bottom:10%;right:-10px;">
+          <div class="badge-float-label">Livraison</div>
+          <div class="badge-float-val">🚀 48h</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="marquee-band">
+    <div class="marquee-inner" id="marqueeInner">
+      <span class="marquee-item">マリス MARISU</span>
+      <span class="marquee-item">Tokyo Street Style</span>
+      <span class="marquee-item">Collection 2025</span>
+      <span class="marquee-item">Streetwear Japonais</span>
+      <span class="marquee-item">Limited Edition</span>
+      <span class="marquee-item">Free Shipping +80€</span>
+      <span class="marquee-item">マリス MARISU</span>
+      <span class="marquee-item">Tokyo Street Style</span>
+      <span class="marquee-item">Collection 2025</span>
+      <span class="marquee-item">Streetwear Japonais</span>
+      <span class="marquee-item">Limited Edition</span>
+      <span class="marquee-item">Free Shipping +80€</span>
+    </div>
+  </div>
+
+  <!-- COLLECTION -->
+  <div class="section" id="collection" style="background:var(--dark);">
+    <div class="section-inner">
+      <div class="sec-header reveal">
+        <div class="sec-header-left">
+          <div class="sec-eyebrow">コレクション — Notre sélection</div>
+          <h2 class="sec-title">Collection actuelle</h2>
+        </div>
+        <a href="#" class="sec-link">Tout voir →</a>
+      </div>
+      <div class="products-grid">
+        <!-- Produit 1 -->
+        <div class="prod-card reveal" style="transition-delay:0s">
+          <div class="prod-img" style="background:#111;">
+            <img src="hoodie.jpg" alt="Cloud Zip" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+            <div class="prod-img-badge">Nouveau</div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Hauts</div>
+            <div class="prod-name">Cloud Zip</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">89,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Cloud Zip',89)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 2 -->
+        <div class="prod-card reveal" style="transition-delay:.08s">
+          <div class="prod-img pg2">
+            <div class="prod-img-kanji">裏</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">🧥</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-img-badge">Best-seller</div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Vestes</div>
+            <div class="prod-name">Bomber Sakura Edition</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">149,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Bomber Sakura Edition',149)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 3 -->
+        <div class="prod-card reveal" style="transition-delay:.16s">
+          <div class="prod-img pg3">
+            <div class="prod-img-kanji">道</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">👖</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Bas</div>
+            <div class="prod-name">Cargo Street Tokyo</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">95,00 €</span><span class="prod-price-old">120,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Cargo Street Tokyo',95)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 4 -->
+        <div class="prod-card reveal" style="transition-delay:.24s">
+          <div class="prod-img pg4">
+            <div class="prod-img-kanji">帽</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">🧢</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-img-badge sold">Épuisé</div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Accessoires</div>
+            <div class="prod-name">Cap マリス Logo</div>
+            <div class="prod-footer">
+              <div><span class="prod-price" style="color:rgba(255,255,255,.3)">45,00 €</span></div>
+              <button class="prod-add" style="opacity:.3;cursor:not-allowed;" disabled>✕</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 5 -->
+        <div class="prod-card reveal" style="transition-delay:.32s">
+          <div class="prod-img pg5">
+            <div class="prod-img-kanji">着</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">👕</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-img-badge">Limited</div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Hauts</div>
+            <div class="prod-name">Tee Violet Night</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">65,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Tee Violet Night',65)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 6 -->
+        <div class="prod-card reveal" style="transition-delay:.4s">
+          <div class="prod-img pg6">
+            <div class="prod-img-kanji">袋</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">👜</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Accessoires</div>
+            <div class="prod-name">Tote Bag Sakura</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">35,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Tote Bag Sakura',35)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 7 -->
+        <div class="prod-card reveal" style="transition-delay:.48s">
+          <div class="prod-img pg7">
+            <div class="prod-img-kanji">靴</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">👟</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-img-badge">Nouveau</div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Chaussures</div>
+            <div class="prod-name">Sneakers Torii Low</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">129,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Sneakers Torii Low',129)">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Produit 8 -->
+        <div class="prod-card reveal" style="transition-delay:.56s">
+          <div class="prod-img pg8">
+            <div class="prod-img-kanji">飾</div>
+            <div class="prod-img-placeholder"><span class="prod-img-icon">💍</span><span class="prod-img-text">Ajouter photo</span></div>
+            <div class="prod-wishlist">🤍</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat">Bijoux</div>
+            <div class="prod-name">Collier Fuji Chain</div>
+            <div class="prod-footer">
+              <div><span class="prod-price">55,00 €</span></div>
+              <button class="prod-add" onclick="addToCart(this,'Collier Fuji Chain',55)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURED DROP -->
+  <div class="section" id="nouveautes" style="background:#080510;">
+    <div class="section-inner">
+      <div class="featured-banner reveal">
+        <div class="fb-blob"></div>
+        <div>
+          <div class="fb-tag">🔥 Drop Exclusif</div>
+          <h2 class="fb-title">Collection<br><em>Sakura Night</em></h2>
+          <p class="fb-desc">Une collection limitée inspirée des nuits de Tokyo sous les cerisiers en fleur. Chaque pièce est numérotée et ne sera jamais réimprimée.</p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <button class="btn btn-primary">Voir la collection</button>
+            <button class="btn btn-ghost">En savoir plus</button>
+          </div>
+        </div>
+        <div class="fb-visual">
+          <div class="fb-product-mock">夜</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="section" id="categories" style="background:var(--dark);">
+    <div class="section-inner">
+      <div class="sec-header reveal">
+        <div class="sec-header-left">
+          <div class="sec-eyebrow">カテゴリー — Parcourir</div>
+          <h2 class="sec-title">Nos catégories</h2>
+        </div>
+      </div>
+      <div class="cats-grid">
+        <div class="cat-card cc1 reveal" style="transition-delay:0s"><div class="cat-bg">服</div><div class="cat-info"><div class="cat-name">Hauts</div><div class="cat-count">12 articles</div></div></div>
+        <div class="cat-card cc2 reveal" style="transition-delay:.1s"><div class="cat-bg">裏</div><div class="cat-info"><div class="cat-name">Vestes</div><div class="cat-count">8 articles</div></div></div>
+        <div class="cat-card cc3 reveal" style="transition-delay:.2s"><div class="cat-bg">道</div><div class="cat-info"><div class="cat-name">Bas</div><div class="cat-count">10 articles</div></div></div>
+        <div class="cat-card cc4 reveal" style="transition-delay:.3s"><div class="cat-bg">靴</div><div class="cat-info"><div class="cat-name">Chaussures</div><div class="cat-count">6 articles</div></div></div>
+        <div class="cat-card cc5 reveal" style="transition-delay:.4s"><div class="cat-bg">帽</div><div class="cat-info"><div class="cat-name">Accessoires</div><div class="cat-count">15 articles</div></div></div>
+        <div class="cat-card cc6 reveal" style="transition-delay:.5s"><div class="cat-bg">飾</div><div class="cat-info"><div class="cat-name">Bijoux</div><div class="cat-count">9 articles</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMO BAND -->
+  <div class="promo-band">
+    <div class="promo-blob"></div>
+    <h2 class="promo-title reveal">-20% sur votre première commande</h2>
+    <p class="promo-sub reveal">Rejoignez la communauté マリス et profitez d'une réduction exclusive !</p>
+    <div class="promo-code reveal" onclick="copyCode()">MARISU20</div>
+    <br>
+    <button class="btn btn-white reveal" onclick="document.getElementById('collection').scrollIntoView({behavior:'smooth'})">J'en profite →</button>
+  </div>
+
+  <!-- ABOUT BRAND -->
+  <div class="section" id="about-brand" style="background:#080510;">
+    <div class="section-inner">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;">
+        <div class="reveal-l">
+          <div class="sec-eyebrow">ブランドについて — Notre histoire</div>
+          <h2 class="sec-title" style="margin-bottom:1.5rem;">Né de la rue,<br>inspiré du Japon</h2>
+          <p style="font-size:.9rem;line-height:1.9;color:rgba(255,255,255,.45);margin-bottom:1.5rem;">マリス (MARISU) est une marque de streetwear qui puise son inspiration dans la culture japonaise — ses contrastes, sa précision, sa beauté brute.</p>
+          <p style="font-size:.9rem;line-height:1.9;color:rgba(255,255,255,.45);margin-bottom:2rem;">Chaque pièce est pensée pour durer, pour se porter au quotidien tout en affirmant une identité forte. Nous croyons que la mode est un art accessible à tous.</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+            <div style="text-align:center;padding:1rem;background:rgba(255,255,255,.03);border-radius:16px;border:1px solid rgba(242,167,195,.08);">
+              <div style="font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">100%</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;">Qualité premium</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:rgba(255,255,255,.03);border-radius:16px;border:1px solid rgba(242,167,195,.08);">
+              <div style="font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">48h</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;">Livraison express</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:rgba(255,255,255,.03);border-radius:16px;border:1px solid rgba(242,167,195,.08);">
+              <div style="font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--sakura),var(--violet-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">30j</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;">Retours gratuits</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal-r" style="position:relative;">
+          <div style="width:100%;aspect-ratio:1;background:linear-gradient(135deg,rgba(107,63,160,.2),rgba(242,167,195,.1));border-radius:28px;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:12rem;color:rgba(255,255,255,.04);border:1px solid rgba(242,167,195,.08);">マ</div>
+          <div style="position:absolute;bottom:-1rem;right:-1rem;background:linear-gradient(135deg,var(--sakura),var(--violet));padding:1.5rem 2rem;border-radius:20px;box-shadow:0 20px 50px rgba(107,63,160,.4);">
+            <div style="font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:800;color:white;">東京</div>
+            <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.7);">Tokyo Style</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEWSLETTER -->
+  <div class="newsletter-section">
+    <div class="newsletter-inner reveal">
+      <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 1.5rem;display:block;">
+        <circle cx="30" cy="30" r="28" fill="none" stroke="rgba(242,167,195,.2)" stroke-width="1"/>
+        <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="Shippori Mincho" font-size="26" fill="url(#ng)">マ</text>
+        <defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f2a7c3"/><stop offset="100%" stop-color="#9b6fcf"/></linearGradient></defs>
+      </svg>
+      <h3 class="nl-title">Rejoins la communauté マリス</h3>
+      <p class="nl-sub">Sois le premier informé des nouveaux drops, des offres exclusives et des coulisses de la marque.</p>
+      <div class="nl-form">
+        <input type="email" class="nl-input" placeholder="ton@email.com">
+        <button class="btn btn-primary">S'inscrire</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div>
+          <div class="footer-brand-jp">マリス</div>
+          <div class="footer-brand-en">MARISU</div>
+          <p class="footer-brand-desc">Streetwear japonais pour ceux qui osent. Des pièces uniques à l'intersection de la culture urbaine et de l'esthétique nippone.</p>
+        </div>
+        <div>
+          <div class="footer-col-title">Boutique</div>
+          <div class="footer-links">
+            <a href="#">Nouveautés</a>
+            <a href="#">Hauts</a>
+            <a href="#">Vestes</a>
+            <a href="#">Bas</a>
+            <a href="#">Accessoires</a>
+            <a href="#">Soldes</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Info</div>
+          <div class="footer-links">
+            <a href="#">À propos</a>
+            <a href="#">Livraison</a>
+            <a href="#">Retours</a>
+            <a href="#">FAQ</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Nous suivre</div>
+          <div class="footer-links">
+            <a href="https://instagram.com/h_marius_" target="_blank">Instagram</a>
+            <a href="#">TikTok</a>
+            <a href="#">Snapchat</a>
+            <a href="#">Discord</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2025 マリス MARISU · Tous droits réservés</span>
+        <div class="footer-socials">
+          <a href="https://instagram.com/h_marius_" target="_blank" class="social-btn">📷</a>
+          <a href="#" class="social-btn">👻</a>
+          <a href="#" class="social-btn">🎮</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cur');
+const curR=document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+  spawnTrail(mx,my);
+});
+
+function animR(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  curR.style.left=rx+'px'; curR.style.top=ry+'px';
+  requestAnimationFrame(animR);
+}
+animR();
+
+document.querySelectorAll('a,button,.btn,.prod-card,.cat-card,.social-btn').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('ch'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('ch'));
+});
+
+const PC=['#f2a7c3','#fce4ef','#fbd5e4','#e8a0b8'];
+let lastT=0;
+function spawnTrail(x,y){
+  const now=Date.now();
+  if(now-lastT<70)return;
+  lastT=now;
+  const p=document.createElement('div');
+  p.className='trail-p';
+  const s=Math.random()*7+3;
+  p.style.cssText=`width:${s}px;height:${s}px;left:${x-s/2}px;top:${y-s/2}px;background:${PC[Math.floor(Math.random()*PC.length)]};`;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),700);
+}
+
+document.addEventListener('click',e=>{
+  for(let i=0;i<10;i++){
+    const b=document.createElement('div');
+    const s=Math.random()*10+5;
+    const angle=Math.random()*360;
+    const dist=Math.random()*50+20;
+    const dx=Math.cos(angle*Math.PI/180)*dist;
+    const dy=Math.sin(angle*Math.PI/180)*dist;
+    b.style.cssText=`position:fixed;width:${s}px;height:${s}px;left:${e.clientX-s/2}px;top:${e.clientY-s/2}px;background:${PC[Math.floor(Math.random()*PC.length)]};border-radius:50%;pointer-events:none;z-index:9996;`;
+    b.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${dx}px,${dy}px) scale(0)`,opacity:0}],{duration:600,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+    document.body.appendChild(b);
+    setTimeout(()=>b.remove(),700);
+  }
+});
+
+/* CART */
+let cartItems=[];
+let cartTotal=0;
+
+function addToCart(btn,name,price){
+  cartItems.push({name,price});
+  cartTotal+=price;
+  document.getElementById('cartCount').textContent=cartItems.length;
+  updateCartUI();
+  toggleCart();
+  btn.textContent='✓';
+  btn.style.background='linear-gradient(135deg,#4caf50,#2e7d32)';
+  setTimeout(()=>{btn.textContent='+';btn.style.background='';},2000);
+}
+
+function updateCartUI(){
+  const body=document.querySelector('.cart-body');
+  const totalVal=document.querySelector('.cart-total-val');
+  totalVal.textContent=cartTotal.toFixed(2)+' €';
+  if(cartItems.length===0){
+    body.innerHTML='<div class="cart-empty"><div class="cart-empty-kanji">空</div><div class="cart-empty-text">Votre panier est vide<br>Explorez notre collection !</div></div>';
+    return;
+  }
+  body.innerHTML=cartItems.map((item,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div>
+        <div style="font-size:.88rem;color:white;font-weight:600;margin-bottom:.2rem;">${item.name}</div>
+        <div style="font-size:.78rem;color:var(--sakura);">${item.price.toFixed(2)} €</div>
+      </div>
+      <button onclick="removeFromCart(${i})" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:none;font-size:1rem;transition:color .2s;" onmouseenter="this.style.color='var(--sakura)'" onmouseleave="this.style.color='rgba(255,255,255,.3)'">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeFromCart(i){
+  cartTotal-=cartItems[i].price;
+  cartItems.splice(i,1);
+  document.getElementById('cartCount').textContent=cartItems.length||0;
+  updateCartUI();
+}
+
+function toggleCart(){
+  document.getElementById('cartSidebar').classList.toggle('open');
+  document.getElementById('cartOverlay').classList.toggle('show');
+}
+
+/* PROMO CODE COPY */
+function copyCode(){
+  navigator.clipboard.writeText('MARISU20').then(()=>{
+    const el=event.target;
+    const orig=el.textContent;
+    el.textContent='✓ Copié !';
+    setTimeout(()=>el.textContent=orig,2000);
+  });
+}
+
+/* REVEAL ON SCROLL */
+function triggerReveals(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');obs.unobserve(e.target);}});
+  },{threshold:.1});
+  document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>obs.observe(el));
+}
+triggerReveals();
+</script>
+</body>
+</html>
